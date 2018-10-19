@@ -1,0 +1,158 @@
+# Games-Concepts
+CO1301
+
+// week3.cpp: A program using the TL-Engine
+
+#include <TL-Engine.h>	// TL-Engine include file and namespace
+using namespace tle;
+
+void main()
+{
+	// Create a 3D engine (using TLX engine here) and open a window for it
+	I3DEngine* myEngine = New3DEngine( kTLX );
+	myEngine->StartWindowed();
+
+	// Add default folder for meshes and other media
+	myEngine->AddMediaFolder( "C:\\ProgramData\\TL-Engine\\Media" );
+
+	/**** Set up your scene here ****/
+	
+	// Camera
+	int GetMouseX();
+	int GetMouseY();
+	int GetMouseMovementX();
+	int GetMouseMovementY();
+	ICamera* Camera = myEngine->CreateCamera(kManual, 0, 20, -80);
+	float kCameraSpeed = 0.05f;
+	float kCameraRotate = 0.02f;
+	myEngine->StartMouseCapture();
+	bool Run = false;
+
+	// Meshs and Models
+	IMesh* FloorMesh = myEngine->LoadMesh("Floor.x");
+	IModel* Floor = FloorMesh->CreateModel(0, 0, 0);
+
+	IMesh* CubeMesh = myEngine->LoadMesh("Cube.x");
+	IModel* Cube = CubeMesh->CreateModel(0, 5, 0);
+
+	IMesh* ArrowMesh = myEngine->LoadMesh("Arrow.x");
+	IModel* Arrow = ArrowMesh->CreateModel(0, 15, 0);
+
+	// Arrow Rotation Variables
+	float ArrowSpeed = 0.1f;
+	bool ArrowRotation = false;
+
+	// Cursor Variables
+	bool CursorRotation = false;
+
+	/*
+	IMesh* GridMesh = myEngine->LoadMesh("Grid.x");
+	IModel* Grid = GridMesh->CreateModel(0, 0.1, 0);
+	*/
+	
+	// The main game loop, repeat until engine is stopped
+	while (myEngine->IsRunning())
+	{
+		// Draw the scene
+		myEngine->DrawScene();
+
+		/**** Update your scene each frame here ****/
+
+		// Quit Game
+		if (myEngine->KeyHit(Key_Escape))
+		{
+			myEngine->Stop();
+		}
+
+		// Arrow Rotation Switching
+		if(ArrowRotation == false && myEngine->KeyHit(Key_M))
+		{
+			ArrowRotation = true;
+		}
+		if (ArrowRotation == true && myEngine->KeyHit(Key_M))
+		{
+			ArrowRotation = false;
+		}
+
+		// Arrow Rotation
+		if (ArrowRotation == true)
+		{
+			int MouseMoveX = myEngine->GetMouseMovementX();
+			Arrow->RotateY(MouseMoveX*ArrowSpeed);
+			int MouseMoveY = myEngine->GetMouseMovementY();
+			Arrow->RotateX(MouseMoveY*ArrowSpeed);
+		}
+
+		// Camera Speed Switching
+		if (Run == true && myEngine->KeyHit(Key_Shift))
+		{
+			Run = false;
+		}
+		if (Run == false && myEngine->KeyHit(Key_Shift))
+		{
+			Run = true;
+		}
+		if (Run == true)
+		{
+			kCameraSpeed = 0.15f;
+		}
+		else
+		{
+			kCameraSpeed = 0.05f;
+		}
+
+		// Camera Movement
+		if (myEngine->KeyHeld(Key_A))
+		{
+			Camera->MoveLocalX(-kCameraSpeed);
+		}
+		if (myEngine->KeyHeld(Key_D))
+		{
+			Camera->MoveLocalX(kCameraSpeed);
+		}
+		if (myEngine->KeyHeld(Key_W))
+		{
+			Camera->MoveLocalZ(kCameraSpeed);
+		}
+		if (myEngine->KeyHeld(Key_S))
+		{
+			Camera->MoveLocalZ(-kCameraSpeed);
+		}
+
+		// Cursor Rotation Switching
+		if (CursorRotation == false && myEngine->KeyHit(Key_Q))
+		{
+			CursorRotation = true;
+		}
+		if (CursorRotation == true && myEngine->KeyHit(Key_Q))
+		{
+			CursorRotation = false;
+		}
+
+		// Cursor Hide/Show
+		if (CursorRotation == false)
+		{
+			myEngine->StopMouseCapture();
+		}
+		if (CursorRotation == true)
+		{
+			myEngine->StartMouseCapture();
+		}
+
+		// Arrow Rotation Reset
+		if (myEngine->KeyHit(Key_R))
+		{
+			Arrow->ResetOrientation();
+		}
+
+		// Camera Rotation Switch
+		int CameraMoveX = myEngine->GetMouseMovementX();
+		Camera->RotateY(CameraMoveX*kCameraRotate);
+		int CameraMoveY = myEngine->GetMouseMovementY();
+		Camera->RotateX(CameraMoveY*kCameraRotate);
+	}
+
+	// Delete the 3D engine now we are finished with it
+	myEngine->Delete();
+}
+
