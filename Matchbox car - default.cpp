@@ -1,4 +1,4 @@
-// Week8.cpp: A program using the TL-Engine
+// S2 - Lab1.cpp: A program using the TL-Engine
 
 #include <TL-Engine.h>	// TL-Engine include file and namespace
 #include <functional>
