@@ -4,6 +4,7 @@
 #include <functional>
 #include <stdio.h>
 #include <sstream>
+#include "Matchbox Car.h"
 using namespace tle;
 
 void MatchboxFront(IModel* F_Matchbox, IModel* F_MatchFront, IModel* F_MatchRear, float F_SteerAngle, float F_Speed) {
@@ -17,88 +18,88 @@ void MatchboxBack(IModel* F_Matchbox, IModel* F_MatchFront, IModel* F_MatchRear,
 	F_Matchbox->RotateLocalY(-F_SteerAngle);
 	F_Matchbox->MoveLocalZ(-F_Speed);
 	F_MatchFront->RotateLocalX(-F_Speed * 3);
-	F_MatchRear->RotateLocalX(F_Speed * 3);
+	F_MatchRear->RotateLocalX(-F_Speed * 3);
 }
 
 float MatchboxRight(float F_MatchFrontRot, float F_RotationSpeed, IModel* F_MatchFront, float F_SteerAngle, float F_SteerAngleIncrease) {
 	F_MatchFront->RotateY(F_RotationSpeed);
-	F_SteerAngle = F_SteerAngle + F_SteerAngleIncrease;
+	F_SteerAngle = F_SteerAngle + F_SteerAngleIncrease * 0.5;
 
 	return F_SteerAngle;
 }
 
 float MatchboxLeft(float F_MatchFrontRot, float F_RotationSpeed, IModel* F_MatchFront, float F_SteerAngle, float F_SteerAngleIncrease) {
 	F_MatchFront->RotateY(-F_RotationSpeed);
-	F_SteerAngle = F_SteerAngle - F_SteerAngleIncrease;
+	F_SteerAngle = F_SteerAngle - F_SteerAngleIncrease * 0.5;
 
 	return F_SteerAngle;
 }
-
-bool TurretFiringZone(float F_TurretX, float F_TurretY, float F_TurretZ, IModel* F_Matchbox, float F_MatchboxX, float F_MatchboxY, float F_MatchboxZ, float F_CarCollisionArea) {
-	
-	// getting position of matchbox
-	F_MatchboxX = F_Matchbox->GetX();
-	F_MatchboxY = F_Matchbox->GetY();
-	F_MatchboxZ = F_Matchbox->GetZ();
-
-	float ex = F_TurretX - F_MatchboxX;
-	float ey = F_TurretY - F_MatchboxY;
-	float ez = F_TurretZ - F_MatchboxZ;
-
-	float eLength = sqrt(ex * ex + ey * ey + ez * ez);
-
-	if (eLength < F_CarCollisionArea + 200)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool TurretFiring(IModel* F_Matchbox, IModel* F_Turret, IModel* F_Bullet, float F_MatchboxX, float F_MatchboxY, float F_MatchboxZ, float F_CarCollisionArea, float F_BulletCollisionArea, float F_BulletLim, bool F_TargetPos) {
-
-	// Turret looking at matchbox
-	F_Turret->LookAt(F_Matchbox);
-
-	if (F_TargetPos == true) {
-
-		F_Bullet->LookAt(F_Matchbox);
-		F_TargetPos = false;
-	}
-	
-	// Fire bullet
-	F_Bullet->MoveLocalZ(0.1);
-
-	// Collision of Bullet
-	float P2x = F_Bullet->GetX();
-	float P2y = F_Bullet->GetY();
-	float P2z = F_Bullet->GetZ();
-
-	float ex = P2x - F_MatchboxX;
-	float ey = P2y - F_MatchboxY;
-	float ez = P2z - F_MatchboxZ;
-
-	float eLength = sqrt(ex * ex + ey * ey + ez * ez);
-
-	if (eLength < F_CarCollisionArea + F_BulletCollisionArea)
-	{
-		// do something
-		F_TargetPos = true;
-
-		// reset bullet position
-		return true;
-
-	}
-	else if (eLength < F_BulletLim)
-	{
-		// do nothing
-		F_TargetPos = true;
-
-		// reset bullet position
-		return false;
-
-	}
-}
+//
+//bool TurretFiringZone(float F_TurretX, float F_TurretY, float F_TurretZ, IModel* F_Matchbox, float F_MatchboxX, float F_MatchboxY, float F_MatchboxZ, float F_CarCollisionArea) {
+//
+//	// getting position of matchbox
+//	F_MatchboxX = F_Matchbox->GetX();
+//	F_MatchboxY = F_Matchbox->GetY();
+//	F_MatchboxZ = F_Matchbox->GetZ();
+//
+//	float ex = F_TurretX - F_MatchboxX;
+//	float ey = F_TurretY - F_MatchboxY;
+//	float ez = F_TurretZ - F_MatchboxZ;
+//
+//	float eLength = sqrt(ex * ex + ey * ey + ez * ez);
+//
+//	if (eLength < F_CarCollisionArea + 200)
+//	{
+//		return true;
+//	}
+//
+//	return false;
+//}
+//
+//bool TurretFiring(IModel* F_Matchbox, IModel* F_Turret, IModel* F_Bullet, float F_MatchboxX, float F_MatchboxY, float F_MatchboxZ, float F_CarCollisionArea, float F_BulletCollisionArea, float F_BulletLim, bool F_TargetPos) {
+//
+//	// Turret looking at matchbox
+//	F_Turret->LookAt(F_Matchbox);
+//
+//	if (F_TargetPos == true) {
+//
+//		F_Bullet->LookAt(F_Matchbox);
+//		F_TargetPos = false;
+//	}
+//
+//	// Fire bullet
+//	F_Bullet->MoveLocalZ(0.1);
+//
+//	// Collision of Bullet
+//	float P2x = F_Bullet->GetX();
+//	float P2y = F_Bullet->GetY();
+//	float P2z = F_Bullet->GetZ();
+//
+//	float ex = P2x - F_MatchboxX;
+//	float ey = P2y - F_MatchboxY;
+//	float ez = P2z - F_MatchboxZ;
+//
+//	float eLength = sqrt(ex * ex + ey * ey + ez * ez);
+//
+//	if (eLength < F_CarCollisionArea + F_BulletCollisionArea)
+//	{
+//		// do something
+//		F_TargetPos = true;
+//
+//		// reset bullet position
+//		return true;
+//
+//	}
+//	else if (eLength < F_BulletLim)
+//	{
+//		// do nothing
+//		F_TargetPos = true;
+//
+//		// reset bullet position
+//		return false;
+//
+//	}
+//}
 
 void main()
 {
@@ -107,7 +108,7 @@ void main()
 	myEngine->StartWindowed(1080, 720);
 
 	// Add default folder for meshes and other media
-	myEngine->AddMediaFolder("C:\\ProgramData\\TL-Engine\\Media");
+	myEngine->AddMediaFolder("./Media");
 
 	myEngine->Timer();
 
@@ -149,6 +150,8 @@ void main()
 	IModel* Turret = TurretMesh->CreateModel(200, 25, 300);
 	IModel* Bullet = BulletMesh->CreateModel(0, 0, 0);
 
+	IModel* Test = BulletMesh->CreateModel(500, 10, 500);
+
 #pragma endregion
 
 #pragma region Matchbox car setup
@@ -179,23 +182,22 @@ void main()
 
 #pragma region Matchbox car variables
 	// MatchBox car variables
-	float Speed = 1.0f;
-	float RotationSpeed = 0.5f;
+	float RotationSpeed = 0.04f;
 	float RotationLimit = 25.0f;
 	float MatchFrontRot = 0.0f;
 	float SteerAngle = 0.0f;
-	float SteerAngleIncrease = 0.01f;
+	float SteerAngleIncrease = 0.001f;
 
 	// Const Car calculation
-	const float V = 25.0f;
+	const float V = 300.0f;
 
 	// collision
 	float CarCollisionArea = 30.0f;
-	float MatchboxX = Matchbox->GetX();
+	/*float MatchboxX = Matchbox->GetX();
 	float MatchboxY = Matchbox->GetY();
 	float MatchboxZ = Matchbox->GetZ();
 
-	bool MatchBoxPos = true;
+	bool MatchBoxPos = true;*/
 
 #pragma endregion
 
@@ -203,17 +205,21 @@ void main()
 
 	// collision TurretBullet
 	float BulletCollisionArea = 1.0f;
-	float TurretX = Turret->GetX();
+	/*float TurretX = Turret->GetX();
 	float TurretY = Turret->GetY();
 	float TurretZ = Turret->GetZ();
 
 	bool FiringZone = false;
-	bool BulletFired = false;
+	bool BulletFired = false;*/
 
 	// setting bullet position
 	Bullet->SetPosition(Turret->GetX(), Turret->GetY(), Turret->GetZ());
 	float BulletLim = 200.0f;
-	bool TargetPos = true;
+
+	float CurrentReloadTime = 100.0f;
+	float ReloadTimeMin = 0.0f;
+
+	/*bool TargetPos = true;*/
 
 #pragma endregion
 
@@ -243,12 +249,12 @@ void main()
 		// front movement
 		if (myEngine->KeyHeld(Key_Up))
 		{
-			MatchboxFront(Matchbox, MatchFront, MatchRear, SteerAngle, Speed);
+			MatchboxFront(Matchbox, MatchFront, MatchRear, SteerAngle, ds);
 		}
 		// back movement
 		if (myEngine->KeyHeld(Key_Down))
 		{
-			MatchboxBack(Matchbox, MatchFront, MatchRear, SteerAngle, Speed);
+			MatchboxBack(Matchbox, MatchFront, MatchRear, SteerAngle, ds);
 		}
 		// Steer Right
 		if (myEngine->KeyHeld(Key_Right) && (MatchFrontRot <= RotationLimit))
@@ -265,30 +271,47 @@ void main()
 
 #pragma endregion
 
-		FiringZone = TurretFiringZone(TurretX, TurretY, TurretZ, Matchbox, MatchboxX, MatchboxY, MatchboxZ, CarCollisionArea);
+#pragma region Turret Detecting Target
 
-		if (FiringZone == true)
+		if (CurrentReloadTime <= ReloadTimeMin)
 		{
-			BulletFired = true;
+			Test->MoveX(-10);
 
-			if (MatchBoxPos == true)
+			CurrentReloadTime = 100.0f;
+		}
+		else
+		{
+			
+			CurrentReloadTime -= 0.095;
+		}
+
+#pragma endregion
+
+
+		/*firingzone = turretfiringzone(turretx, turrety, turretz, matchbox, matchboxx, matchboxy, matchboxz, carcollisionarea);
+
+		if (firingzone == true)
+		{
+			bulletfired = true;
+
+			if (matchboxpos == true)
 			{
-				MatchboxX = Matchbox->GetX();
-				MatchboxY = Matchbox->GetY();
-				MatchboxZ = Matchbox->GetZ();
+				matchboxx = matchbox->getx();
+				matchboxy = matchbox->gety();
+				matchboxz = matchbox->getz();
 
-				MatchBoxPos = false;
+				matchboxpos = false;
 			}
 		}
-		
-		if (BulletFired == true) {
 
-			if (TurretFiring(Matchbox, Turret, Bullet, MatchboxX, MatchboxY, MatchboxZ, CarCollisionArea, BulletCollisionArea, BulletLim, TargetPos) == true) {
+		if (bulletfired == true) {
 
-				MatchBoxPos = true;
-				myEngine->Stop();
+			if (turretfiring(matchbox, turret, bullet, matchboxx, matchboxy, matchboxz, carcollisionarea, bulletcollisionarea, bulletlim, targetpos) == true) {
+
+				matchboxpos = true;
+				myengine->stop();
 			}
-		}
+		}*/
 
 		if (myEngine->KeyHit(Key_Escape))
 		{
