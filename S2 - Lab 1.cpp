@@ -4,7 +4,6 @@
 #include <functional>
 #include <stdio.h>
 #include <sstream>
-#include "Matchbox Car.h"
 using namespace tle;
 
 void MatchboxFront(IModel* F_Matchbox, IModel* F_MatchFront, IModel* F_MatchRear, float F_SteerAngle, float F_Speed) {
@@ -33,6 +32,30 @@ float MatchboxLeft(float F_MatchFrontRot, float F_RotationSpeed, IModel* F_Match
 	F_SteerAngle = F_SteerAngle - F_SteerAngleIncrease * 0.5;
 
 	return F_SteerAngle;
+}
+
+float Find_eLength(IModel* F_TargetA, IModel* F_TargetB) {
+
+	float F_MatchboxX = F_TargetA->GetX();
+	float F_MatchboxY = F_TargetA->GetY();
+	float F_MatchboxZ = F_TargetA->GetZ();
+
+	float F_TurretX = F_TargetB->GetX();
+	float F_TurretY = F_TargetB->GetY();
+	float F_TurretZ = F_TargetB->GetZ();
+
+	float ex = F_TurretX - F_MatchboxX;
+	float ey = F_TurretY - F_MatchboxY;
+	float ez = F_TurretZ - F_MatchboxZ;
+	
+	float eLength = sqrt(ex * ex + ey * ey + ez * ez);
+
+	return eLength;
+
+	//if (eLength < F_CarCollisionArea)
+	//{
+	//	return true;
+	//}
 }
 //
 //bool TurretFiringZone(float F_TurretX, float F_TurretY, float F_TurretZ, IModel* F_Matchbox, float F_MatchboxX, float F_MatchboxY, float F_MatchboxZ, float F_CarCollisionArea) {
@@ -100,6 +123,36 @@ float MatchboxLeft(float F_MatchFrontRot, float F_RotationSpeed, IModel* F_Match
 //
 //	}
 //}
+
+bool ReloadAndScan(float F_CurrentReloadTime, IModel* F_Matchbox, IModel* F_Turret, IModel* F_Bullet, float F_FiringZone, bool F_BulletFired) {
+	
+	// reload time to arm the turret
+	if (F_CurrentReloadTime <= 0)
+	{
+		// check if player is in firing zone
+		if (Find_eLength(F_Matchbox,F_Turret) < F_FiringZone)
+		{
+			// target player
+			F_Turret->LookAt(F_Matchbox);
+				if (F_BulletFired == false)
+			{
+				F_Bullet->LookAt(F_Matchbox);
+				
+				// trigger firing 
+				F_BulletFired = true;
+			}
+		}
+
+		// reset the reload timer
+		F_CurrentReloadTime = 100.0f;
+	}
+	else
+	{
+		F_CurrentReloadTime -= 0.095;
+	}
+
+	return F_BulletFired;
+}
 
 void main()
 {
@@ -182,11 +235,11 @@ void main()
 
 #pragma region Matchbox car variables
 	// MatchBox car variables
-	float RotationSpeed = 0.04f;
+	float RotationSpeed = 0.1f;
 	float RotationLimit = 25.0f;
 	float MatchFrontRot = 0.0f;
 	float SteerAngle = 0.0f;
-	float SteerAngleIncrease = 0.001f;
+	float SteerAngleIncrease = 0.004f;
 
 	// Const Car calculation
 	const float V = 300.0f;
@@ -196,7 +249,6 @@ void main()
 	/*float MatchboxX = Matchbox->GetX();
 	float MatchboxY = Matchbox->GetY();
 	float MatchboxZ = Matchbox->GetZ();
-
 	bool MatchBoxPos = true;*/
 
 #pragma endregion
@@ -208,16 +260,20 @@ void main()
 	/*float TurretX = Turret->GetX();
 	float TurretY = Turret->GetY();
 	float TurretZ = Turret->GetZ();
-
 	bool FiringZone = false;
 	bool BulletFired = false;*/
 
 	// setting bullet position
 	Bullet->SetPosition(Turret->GetX(), Turret->GetY(), Turret->GetZ());
-	float BulletLim = 200.0f;
+	float BulletLim = 400.0f;
 
 	float CurrentReloadTime = 100.0f;
 	float ReloadTimeMin = 0.0f;
+	float FiringZone = 400.0f;
+
+	float BulletSpeed = 0.4f;
+
+	bool BulletFired = false;
 
 	/*bool TargetPos = true;*/
 
@@ -240,8 +296,8 @@ void main()
 #pragma region Debug Text
 		// Debug Text
 		stringstream S_Debug;
-		S_Debug << "Debug dt: " << dt;
-		Font_Debug->Draw(S_Debug.str(), 30, 1025);
+		S_Debug << "Debug : " << BulletFired << ", " << CurrentReloadTime;
+		Font_Debug->Draw(S_Debug.str(), 10, 10);
 #pragma endregion
 
 #pragma region Matchbox movement
@@ -273,44 +329,71 @@ void main()
 
 #pragma region Turret Detecting Target
 
+		// returns bool
+		BulletFired = ReloadAndScan(CurrentReloadTime, Matchbox, Turret, Bullet, FiringZone, BulletFired);
+
+		/*
+
+		// reload time to arm the turret
 		if (CurrentReloadTime <= ReloadTimeMin)
 		{
-			Test->MoveX(-10);
+			// check if player is in firing zone
+			if (Find_eLength(Matchbox,Turret) < FiringZone)
+			{
+				// target player
+				Turret->LookAt(Matchbox);
 
+				if (BulletFired == false)
+				{
+					Bullet->LookAt(Matchbox);
+
+					// trigger firing 
+					BulletFired = true;
+				}
+			}
+
+			// reset the reload timer
 			CurrentReloadTime = 100.0f;
 		}
 		else
 		{
-			
 			CurrentReloadTime -= 0.095;
+		}
+
+		*/
+
+		// Firing is triggered
+		if (BulletFired == true)
+		{
+			Bullet->MoveLocalZ(BulletSpeed);
+
+			if (Find_eLength(Turret, Bullet) > BulletLim) {
+
+				Bullet->SetPosition(Turret->GetX(), Turret->GetY(), Turret->GetZ());
+				BulletFired = false;
+			}
 		}
 
 #pragma endregion
 
 
 		/*firingzone = turretfiringzone(turretx, turrety, turretz, matchbox, matchboxx, matchboxy, matchboxz, carcollisionarea);
-
 		if (firingzone == true)
 		{
-			bulletfired = true;
-
-			if (matchboxpos == true)
-			{
-				matchboxx = matchbox->getx();
-				matchboxy = matchbox->gety();
-				matchboxz = matchbox->getz();
-
-				matchboxpos = false;
-			}
+		bulletfired = true;
+		if (matchboxpos == true)
+		{
+		matchboxx = matchbox->getx();
+		matchboxy = matchbox->gety();
+		matchboxz = matchbox->getz();
+		matchboxpos = false;
 		}
-
+		}
 		if (bulletfired == true) {
-
-			if (turretfiring(matchbox, turret, bullet, matchboxx, matchboxy, matchboxz, carcollisionarea, bulletcollisionarea, bulletlim, targetpos) == true) {
-
-				matchboxpos = true;
-				myengine->stop();
-			}
+		if (turretfiring(matchbox, turret, bullet, matchboxx, matchboxy, matchboxz, carcollisionarea, bulletcollisionarea, bulletlim, targetpos) == true) {
+		matchboxpos = true;
+		myengine->stop();
+		}
 		}*/
 
 		if (myEngine->KeyHit(Key_Escape))
